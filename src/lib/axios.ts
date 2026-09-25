@@ -22,8 +22,12 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.response?.data || error.message);
+    // Do not log expected cancellations (e.g. AbortController for stale search queries)
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
 
+    console.error("API Error:", error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
