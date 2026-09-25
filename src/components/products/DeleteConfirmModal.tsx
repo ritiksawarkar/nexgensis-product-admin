@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,6 +17,17 @@ export default function DeleteConfirmModal({
   productTitle,
   isDeleting,
 }: DeleteConfirmModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isDeleting) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isDeleting, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -22,9 +35,9 @@ export default function DeleteConfirmModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl transition-all">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-lg">
             !

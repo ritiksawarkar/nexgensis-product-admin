@@ -33,73 +33,54 @@ export interface CategoryProductsParams extends FetchProductsParams {
   category: string;
 }
 
+function buildParams(
+  params: FetchProductsParams,
+  extra?: Record<string, string | number>
+) {
+  const queryParams: Record<string, string | number> = {
+    limit: params.limit,
+    skip: params.skip,
+    ...extra,
+  };
+
+  if (params.sortBy) {
+    queryParams.sortBy = params.sortBy;
+    queryParams.order = params.order || "asc";
+  }
+
+  return queryParams;
+}
+
 export const getProducts = async (
   params: FetchProductsParams
 ): Promise<ProductListResponse> => {
-  const { limit, skip, sortBy, order, signal } = params;
-  const queryParams: Record<string, string | number> = {
-    limit,
-    skip,
-  };
-
-  if (sortBy) {
-    queryParams.sortBy = sortBy;
-    queryParams.order = order || "asc";
-  }
-
   const response = await apiClient.get<ProductListResponse>("/products", {
-    params: queryParams,
-    signal,
+    params: buildParams(params),
+    signal: params.signal,
   });
-
   return response.data;
 };
 
 export const searchProducts = async (
   params: SearchProductsParams
 ): Promise<ProductListResponse> => {
-  const { query, limit, skip, sortBy, order, signal } = params;
-  const queryParams: Record<string, string | number> = {
-    q: query,
-    limit,
-    skip,
-  };
-
-  if (sortBy) {
-    queryParams.sortBy = sortBy;
-    queryParams.order = order || "asc";
-  }
-
   const response = await apiClient.get<ProductListResponse>("/products/search", {
-    params: queryParams,
-    signal,
+    params: buildParams(params, { q: params.query }),
+    signal: params.signal,
   });
-
   return response.data;
 };
 
 export const getProductsByCategory = async (
   params: CategoryProductsParams
 ): Promise<ProductListResponse> => {
-  const { category, limit, skip, sortBy, order, signal } = params;
-  const queryParams: Record<string, string | number> = {
-    limit,
-    skip,
-  };
-
-  if (sortBy) {
-    queryParams.sortBy = sortBy;
-    queryParams.order = order || "asc";
-  }
-
   const response = await apiClient.get<ProductListResponse>(
-    `/products/category/${encodeURIComponent(category)}`,
+    `/products/category/${encodeURIComponent(params.category)}`,
     {
-      params: queryParams,
-      signal,
+      params: buildParams(params),
+      signal: params.signal,
     }
   );
-
   return response.data;
 };
 
@@ -109,7 +90,6 @@ export const getCategories = async (
   const response = await apiClient.get<Category[]>("/products/categories", {
     signal,
   });
-
   return response.data;
 };
 
@@ -120,7 +100,6 @@ export const getProductById = async (
   const response = await apiClient.get<Product>(`/products/${id}`, {
     signal,
   });
-
   return response.data;
 };
 
@@ -128,7 +107,6 @@ export const addProduct = async (
   product: CreateProductInput
 ): Promise<Product> => {
   const response = await apiClient.post<Product>("/products/add", product);
-
   return response.data;
 };
 
@@ -137,7 +115,6 @@ export const updateProduct = async (
   product: UpdateProductInput
 ): Promise<Product> => {
   const response = await apiClient.put<Product>(`/products/${id}`, product);
-
   return response.data;
 };
 
@@ -149,6 +126,5 @@ export const deleteProduct = async (
     isDeleted: boolean;
     deletedOn?: string;
   }>(`/products/${id}`);
-
   return response.data;
 };

@@ -1,306 +1,208 @@
 # Nexgensis Product Admin Dashboard
 
-An enterprise-grade Product Administration web application built for the **Nexgensis Technologies Pvt. Ltd.** React Developer Assignment.
+A product management dashboard built for the Nexgensis Technologies frontend assessment. The application connects to the [DummyJSON API](https://dummyjson.com) to provide inventory management, search, category filtering, sorting, server-side pagination, and simulated CRUD operations.
+
+Built with **Next.js (App Router)**, **React**, **TypeScript**, **Tailwind CSS**, and **Axios**.
 
 ---
 
-## 1. Project Overview
+## Features
 
-The **Nexgensis Product Admin Dashboard** is a clean, responsive, and robust inventory and product management interface connected to the live [DummyJSON API](https://dummyjson.com). It provides secure authentication, real server-side pagination, debounced search with strict race-condition mitigation, category filtering, multi-field sorting, interactive product detail views, and full simulated CRUD operations (Add, Edit, Delete) with local UI session synchronization.
-
----
-
-## 2. Tech Stack
-
-- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-- **Library**: [React 19](https://react.dev/)
-- **Language**: [TypeScript 5](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **HTTP Client**: [Axios](https://axios-http.com/)
-- **API Provider**: [DummyJSON](https://dummyjson.com)
-
-*Note: No heavy state-management or ready-made table/pagination libraries (such as React Query, SWR, TanStack Table, Material UI, Express, or MongoDB) were used, keeping the project lightweight, explainable, and interview-ready.*
+- **Authentication**: JWT-based login using DummyJSON credentials (`emilys` / `emilyspass`). Token stored in `localStorage` and attached via Axios request interceptor.
+- **Route Protection**: Client-side `<AuthGuard />` ensures unauthenticated visitors are redirected to `/login`.
+- **Product Catalog**: High-density desktop table and responsive mobile cards displaying image, title, category, price, rating, and stock status.
+- **Server Pagination**: Real pagination utilizing `limit` and `skip` query parameters calculated from the API's total count.
+- **Search & Debounce**: Search input debounced at 400ms to avoid unnecessary network traffic.
+- **Race Condition Immunity**: Out-of-order responses from fast keystrokes are prevented using `AbortController` cancellation paired with a sequential request identifier.
+- **Category Filter**: Populated dynamically from `/products/categories`.
+- **Sorting**: Native API-driven sorting by price, rating, and title in both ascending and descending order.
+- **URL Synchronization**: Page, page size, search, category, and sort are stored in query parameters. Refreshing, sharing links, or navigating via browser back/forward buttons seamlessly preserves the active view with automatic fallback for out-of-bounds page numbers.
+- **Product Details**: Dedicated route at `/products/[id]` featuring an interactive image gallery, product specifications, and customer reviews.
+- **Simulated CRUD**: Add, edit, and delete flows with form validation, keyboard ESC support, confirmation dialogs, and immediate local UI updates.
+- **Resilient States**: Skeleton loaders, low-stock inventory cues, informative empty views, and error states with retry actions.
 
 ---
 
-## 3. Features Completed
+## Tech Stack
 
-- **Authentication**:
-  - Secure login flow against `POST /auth/login`.
-  - Credentials validation and user feedback.
-  - Multi-click submission prevention and loading spinner.
-  - Automatic `Authorization: Bearer <token>` attachment via Axios request interceptors.
-  - Client-side route protection using `<AuthGuard />` with `useSyncExternalStore`.
-  - Safe logout clearing session and redirecting to `/login`.
-  - Demo credentials quick-fill helper for reviewer convenience.
+- **Framework**: Next.js 16 (App Router)
+- **Library**: React 19
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS v4
+- **HTTP Client**: Axios
 
-- **Product Listing & Responsiveness**:
-  - Desktop: Clean, high-density enterprise table layout with thumbnail previews, status badges, price, rating, stock level indicators, and action triggers.
-  - Mobile/Tablet: Card layout displaying product image, category, rating, price, and actions.
-
-- **Real Server-Side Pagination**:
-  - API pagination using `limit` and `skip`.
-  - Configurable page sizes: **10**, **20**, **50** per page.
-  - Previous, Next, and smart numbered windowing with ellipsis (`...`).
-  - Total item count and range indicator (`Showing X–Y of Total`).
-  - Automatic page reset to 1 when changing page size or search/filter parameters.
-
-- **URL State Synchronization**:
-  - All critical query parameters (`page`, `pageSize`, `search`, `category`, `sort`) are synced to URL query parameters via Next.js App Router (`useSearchParams`, `useRouter`, `usePathname`).
-  - Page refresh or URL sharing reproduces the exact view.
-  - Resilient parameter normalization: non-numeric or out-of-range values fall back to safe defaults without crashing.
-
-- **Debounced Search & Fast-Typing Race-Condition Handling**:
-  - Debounced input (`useDebounce` hook at 400ms) prevents spamming the API on every keystroke.
-  - **Dual Race-Condition Safeguards**:
-    1. `AbortController` signal passed to Axios cancels in-flight requests when a new search starts.
-    2. Sequence request ID counter (`requestIdRef`) guarantees that if an older request resolves late, it is ignored and never overwrites newer search results.
-
-- **Category Filtering**:
-  - Dynamically fetches available categories from `GET /products/categories`.
-  - Supports quick filtering and resets page to 1 on category change.
-
-- **Sorting**:
-  - Supports `price-asc`, `price-desc`, `rating-asc`, `rating-desc`, `title-asc`, `title-desc`.
-  - Preserved in URL parameters.
-
-- **Product Details (`/products/[id]`)**:
-  - Protected route displaying full product gallery with interactive thumbnail selector.
-  - Detailed product specifications: price, stock, brand, SKU, warranty, shipping, and return policy.
-  - Customer review list with star ratings, reviewer names, and timestamps.
-  - Graceful handling of invalid IDs and 404 responses with a user-friendly "Product Not Found" screen.
-
-- **Add, Edit & Delete (Simulated CRUD)**:
-  - **Add Product Modal**: Multi-field validation (title, category, price, stock, description), loading indicators, and submission lock.
-  - **Edit Product Modal**: Pre-fills existing data with clean validation and update feedback.
-  - **Delete Modal**: Clear confirmation dialog to prevent accidental deletion.
-  - **Local State Synchronization**: Updates the dashboard state locally upon API success, clearly informing the user.
-
-- **Loading, Empty & Error States**:
-  - Skeleton loaders for both table and mobile cards.
-  - Informative empty states with "Clear All Filters" button.
-  - Error alert banners with "Retry Loading" buttons.
+*No third-party table, pagination, or state management libraries (such as React Query, SWR, or TanStack Table) were used to keep the architecture transparent and explainable.*
 
 ---
 
-## 4. Setup Instructions
-
-Ensure you have **Node.js (v18.18+ or v20+)** installed on your machine.
-
-Clone the repository and navigate into the project directory:
-
-```bash
-cd nexgensis-product-admin
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
----
-
-## 5. How to Run Locally
-
-### Start Development Server:
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser. The root URL automatically routes to `/dashboard` (or `/login` if unauthenticated).
-
-### Build for Production:
-```bash
-npm run build
-```
-
-### Run Production Server:
-```bash
-npm run start
-```
-
-### Run Linter:
-```bash
-npm run lint
-```
-
----
-
-## 6. DummyJSON API Usage
-
-The application integrates with the following DummyJSON endpoints:
-
-| Action | HTTP Method | Endpoint |
-|---|---|---|
-| User Login | `POST` | `/auth/login` |
-| List Products | `GET` | `/products?limit={l}&skip={s}&sortBy={f}&order={o}` |
-| Search Products | `GET` | `/products/search?q={q}&limit={l}&skip={s}&sortBy={f}&order={o}` |
-| Categories List | `GET` | `/products/categories` |
-| Filter by Category | `GET` | `/products/category/{cat}?limit={l}&skip={s}&sortBy={f}&order={o}` |
-| Single Product | `GET` | `/products/{id}` |
-| Add Product | `POST` | `/products/add` |
-| Update Product | `PUT` | `/products/{id}` |
-| Delete Product | `DELETE` | `/products/{id}` |
-
----
-
-## 7. Authentication Credentials for Evaluation
-
-Use the standard DummyJSON test credentials:
-
-- **Username**: `emilys`
-- **Password**: `emilyspass`
-
-*(A "Fill Demo" shortcut button is provided directly on the `/login` screen for fast evaluation.)*
-
----
-
-## 8. Architecture Overview
-
-The codebase adheres strictly to separation of concerns without unnecessary abstraction:
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── dashboard/
-│   │   └── page.tsx              # Main dashboard wrapped with AuthGuard & Suspense
-│   ├── login/
-│   │   └── page.tsx              # Login page with validation and demo helper
-│   ├── products/
-│   │   └── [id]/
-│   │       └── page.tsx          # Product details page with image gallery & reviews
-│   ├── layout.tsx                # Root layout with suppressHydrationWarning
-│   ├── page.tsx                  # Root index page redirecting to /dashboard
-│   └── globals.css               # Tailwind CSS imports & global styles
+│   ├── dashboard/page.tsx      # Dashboard entry point wrapped in AuthGuard & Suspense
+│   ├── login/page.tsx          # Login page with demo helper credentials
+│   ├── products/[id]/page.tsx  # Product details page with image gallery and reviews
+│   ├── layout.tsx              # Root HTML/Body layout with font imports
+│   ├── page.tsx                # Root redirect forwarding to /dashboard
+│   └── globals.css             # Tailwind base styles
 ├── components/
-│   ├── AuthGuard.tsx             # Client authentication check via useSyncExternalStore
+│   ├── AuthGuard.tsx           # Authentication wrapper using useSyncExternalStore
 │   └── products/
-│       ├── ProductList.tsx       # Core orchestrator for state, URL sync, & data fetching
-│       ├── ProductFilters.tsx    # Search, category, sort dropdowns, and reset controls
-│       ├── ProductTable.tsx      # Enterprise desktop table with actions
-│       ├── ProductCard.tsx       # Mobile/tablet responsive product card
-│       ├── ProductPagination.tsx # Custom pagination with dynamic ellipsis windowing
-│       ├── ProductFormModal.tsx  # Accessible modal for both Adding and Editing products
-│       ├── DeleteConfirmModal.tsx# Confirmation dialog for item deletion
-│       └── ProductSkeleton.tsx   # Skeleton loading states for table & cards
-├── services/
-│   ├── auth.service.ts           # Login request handler
-│   └── product.service.ts        # Typed API service wrappers around DummyJSON endpoints
-├── lib/
-│   └── axios.ts                  # Central Axios client with token request interceptor
+│       ├── ProductList.tsx     # Central orchestrator for state, search, and pagination
+│       ├── ProductFilters.tsx  # Search input, category dropdown, sort options, and reset
+│       ├── ProductTable.tsx    # Desktop table layout with action buttons
+│       ├── ProductCard.tsx     # Mobile card layout with responsive grid
+│       ├── ProductPagination.tsx# Custom pagination controls with ellipsis windowing
+│       ├── ProductFormModal.tsx# Reusable Add/Edit product modal with validation
+│       ├── DeleteConfirmModal.tsx # Confirmation dialog for safe deletion
+│       └── ProductSkeleton.tsx # Skeleton loaders for table rows and cards
 ├── hooks/
-│   └── useDebounce.ts            # Custom debounce hook for search queries
+│   └── useDebounce.ts          # Custom debounce hook
+├── lib/
+│   └── axios.ts                # Shared Axios instance with request/response interceptors
+├── services/
+│   ├── auth.service.ts         # Authentication API calls
+│   └── product.service.ts      # Product catalog and CRUD API calls
 └── types/
-    └── product.ts                # TypeScript interfaces for Product, Category, and filters
+    └── product.ts              # Data contracts and TypeScript interfaces
 ```
 
 ---
 
-## 9. URL State Approach
+## Setup Instructions
 
-All view parameters are synchronized with browser query parameters:
-- `page`: active page number (normalized to `1` if invalid or `< 1`)
-- `pageSize`: items per page (normalized to `10`, `20`, or `50`)
-- `search`: string search query
-- `category`: slug of chosen category
-- `sort`: sort configuration (e.g. `price-asc`, `rating-desc`)
+Prerequisites: Node.js (v18.18+ or v20+) and npm.
 
-**Why this matters**:
-- Refreshing the browser or sharing the link preserves the exact filtered view.
-- Handled via Next.js App Router's `useSearchParams`, `useRouter`, and `usePathname`.
-- Non-default values are preserved; default values (e.g. page 1, size 10) are cleanly omitted from the URL.
+1. Clone or extract the project:
+   ```bash
+   cd nexgensis-product-admin
+   ```
 
----
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## 10. Search Debounce Approach
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-When a user types into the search input:
-1. The local input state (`searchInput`) updates immediately, keeping typing lag-free.
-2. The custom `useDebounce` hook holds emission for **400ms**.
-3. Once typing pauses for 400ms, the debounced query triggers an effect that resets `page` to 1 and pushes the query to the URL search params.
-4. Clearing the search box immediately restores standard paginated product listing.
+4. Run production build:
+   ```bash
+   npm run build
+   npm run start
+   ```
 
----
-
-## 11. How Race Conditions are Prevented
-
-In real-world networks or when users type quickly, asynchronous responses may arrive out of order (e.g., query "ph" arrives after query "phone").
-
-To solve this, we employ a **dual-layer guarantee**:
-1. **Request Abort via `AbortController`**: An `AbortController` instance is stored in `abortControllerRef`. Each time a new search or filter request is dispatched, any in-flight Axios request is immediately aborted via its `signal`.
-2. **Sequential Request ID Tracking**: A monotonic counter (`requestIdRef.current++`) assigns a unique sequence ID to each fetch. When a response resolves, the component verifies that the response ID matches the latest sequence ID before calling `setProducts`.
-
-Even under artificial latency tests (e.g. `?delay=2000`), outdated API responses can never overwrite newer search results.
+5. Run linting:
+   ```bash
+   npm run lint
+   ```
 
 ---
 
-## 12. Search + Category API Limitation & Chosen Behavior
+## Environment / API Configuration
 
-### The DummyJSON Limitation:
-DummyJSON does **not** support combining search and category filtering in a single API query (e.g., `/products/search?q=phone&category=smartphones` ignores the category or fails).
-
-### Chosen Behavior:
-1. **Search takes priority**: When the user enters a search term, the application queries `/products/search?q=...`.
-2. **Client-side Category Refinement**: If a category is also active, the search results are refined client-side matching `product.category === selectedCategory`.
-3. **Transparent UX**: An informative note appears beneath the filter bar informing the user: *"Search is active. Results are searched across all products and filtered by the selected category."*
-4. When search is cleared, the system automatically falls back to full server-side category pagination (`/products/category/{cat}`).
-
-This architecture is completely explainable, predictable, and doesn't mislead the user.
+The application targets `https://dummyjson.com` as its backend. Base URL configuration and default JSON headers are centralized in `src/lib/axios.ts`. No additional `.env` variables are required for standard evaluation.
 
 ---
 
-## 13. DummyJSON CRUD Persistence Limitation
+## Authentication
 
-DummyJSON is a mock REST API:
-- `POST /products/add`: Simulates creation and returns a new product object with an assigned ID (typically 195+).
-- `PUT /products/[id]`: Simulates updating and returns the modified fields.
-- `DELETE /products/[id]`: Simulates deletion and returns `{ isDeleted: true }`.
-
-**None of these changes are permanently stored on DummyJSON's servers.**
-
-### How the application handles this:
-- Upon successful API response, the application updates its **local React state**:
-  - Newly added products are prepended to the active list and marked with a clean badge.
-  - Edited products update their fields in-place with an "Edited" badge.
-  - Deleted products are removed from the active view and total count is adjusted.
-- If a user tries to edit or delete a newly simulated product (id >= 195), the API returns a 404 because the product was never persisted on DummyJSON's backend. The app gracefully catches this 404 and applies the change to the local state, preventing application crashes.
+- **API Endpoint**: `POST /auth/login`
+- **Evaluation Credentials**:
+  - **Username**: `emilys`
+  - **Password**: `emilyspass`
+- A convenient "Fill Demo" shortcut button is provided directly on the login form.
+- Upon successful authentication, `accessToken` is saved to `localStorage` under `authToken`.
+- All requests dispatched through `apiClient` automatically include `Authorization: Bearer <token>` via an Axios request interceptor.
+- Unauthenticated access to `/dashboard` or `/products/[id]` triggers an automatic redirection to `/login` via `<AuthGuard />`.
+- Logging out removes `authToken` from storage and returns the user to the login screen.
 
 ---
 
-## 14. One Significant Problem Faced
+## Product Management
 
-During initial startup on Next.js 16 (Turbopack) with React 19:
-1. The browser console logged `GET /login 404` and hydration mismatches due to `className="native-dark-class-modified"` injected by browser dark-mode extensions.
-2. In `src/app/layout.tsx`, an unimported `LayoutProps<"/">` type corrupted `.next/dev/types/validator.ts` and disrupted route registration.
-3. React 19 introduced strict linter checks (`react-hooks/set-state-in-effect`), which flagged synchronous `setState` executions inside effects.
-
----
-
-## 15. How It Was Fixed
-
-1. **Hydration & Root Layout**: Fixed `src/app/layout.tsx` to use `{ children }: { children: React.ReactNode }` and added `suppressHydrationWarning` on `<html>` and `<body>` to ignore browser extension DOM mutations.
-2. **Route Redirection**: Updated `src/app/page.tsx` with a server redirect to `/dashboard` so visitors are immediately forwarded to the protected area.
-3. **Suspense Boundary**: Wrapped `ProductList` with `<Suspense>` in `dashboard/page.tsx` to ensure `useSearchParams()` hydrates cleanly in Next.js App Router.
-4. **State Derivation in Modals**: Refactored `ProductFormModal.tsx` to initialize form state directly on mount with dynamic `key` props instead of using cascading `useEffect` setters.
-5. **Hydration-Safe Storage in AuthGuard**: Refactored `AuthGuard.tsx` to use `useSyncExternalStore` for reading `localStorage`, completely eliminating hydration warnings.
+The dashboard supports the complete lifecycle of product records:
+- **Add Product**: Opened via the "+ Add Product" button in the filter bar. Validates that title, category, price (>0), stock (>=0 whole number), and description are filled.
+- **Edit Product**: Pre-populates existing record details into the form modal.
+- **Delete Product**: Prompts the user with a confirmation dialog to prevent accidental removal.
+- **Local State Updates**: Because DummyJSON is a mock backend, CRUD mutations are not permanently stored on the server. On successful API response, the local React state updates immediately (e.g. prepending added products, updating edited items in-place, and removing deleted items from the table) so the changes are visible during the user session.
 
 ---
 
-## 16. Where AI Tools Helped
+## Search, Filter & Sorting
 
-- Accelerated identification of TypeScript type mismatch errors in Next.js 16 type generator files.
-- Assisted in rapidly prototyping the dual race-condition architecture combining `AbortController` cancellation and monotonic request sequence IDs.
-- Outlined edge cases for query parameter normalization (`?page=abc`, `?pageSize=999`).
+- **Debounced Search**: As the user types into the search field, input state updates immediately. An internal 400ms debounce pauses API calls until typing ceases.
+- **Category Filter**: Categories are loaded once on dashboard mount from `/products/categories`. Changing the selected category resets pagination to page 1.
+- **Sorting**: Supports sorting by `price`, `rating`, and `title` in either ascending or descending order.
+- **Search vs Category Behavior**: DummyJSON's REST API cannot execute text search and category filtering in the same query. To give a predictable experience:
+  1. When search text is present, search queries `/products/search?q=...`.
+  2. If a category filter is also selected, results are filtered client-side matching the category, and a brief note informs the user that search is active across categories.
+  3. When search is cleared, the system returns to native server-side category pagination (`/products/category/{cat}`).
 
 ---
 
-## 17. What Was Manually Verified / Tested
+## URL State
 
-- **Authentication**: Logged in with `emilys` / `emilyspass`, verified JWT token stored in `localStorage`, verified request headers in network requests, and confirmed logout clears token and routes to `/login`.
-- **Route Protection**: Verified navigating directly to `/dashboard` or `/products/1` while unauthenticated immediately redirects to `/login`.
-- **Search & Debounce**: Typed search queries rapidly; verified cancellation of previous requests and confirmed the latest search result always renders.
-- **Category Filter & Sorting**: Tested category selection and sorting combinations (Price Low/High, Rating, Title) and verified URL parameters update in sync.
-- **Pagination**: Verified navigation between pages, changing page size (10, 20, 50), and boundary behavior on first and last pages.
-- **Product Details**: Tested `/products/1` (valid product, verified gallery, specs, reviews) and `/products/99999` (verified clean Not Found UI without crashes).
-- **CRUD Operations**: Created new products, edited existing products, and deleted products, observing local state synchronization and feedback alerts.
-- **Production Verification**: Successfully executed `npm run lint` (0 errors, 0 warnings) and `npm run build` (0 build errors, clean static and dynamic route generation).
+To allow bookmarking, page refreshes, and link sharing, five parameters are synchronized to the browser's URL query string:
+- `page`: active page number
+- `pageSize`: items per page (10, 20, 50)
+- `search`: search term
+- `category`: category slug
+- `sort`: sort key (e.g. `price-asc`, `rating-desc`)
+
+Parameter parsing is defensive: non-numeric or out-of-bounds parameters (such as `?page=abc` or `?pageSize=999`) safely fall back to defaults (`page=1`, `pageSize=10`) without throwing runtime errors.
+
+---
+
+## Race Condition Handling
+
+When typing rapidly in search inputs, network latency variations can cause earlier requests to complete after later ones.
+
+To ensure consistency, two mechanisms work together:
+1. **Request Cancellation (`AbortController`)**: Each time a new search or filter request is started, any in-flight Axios request is cancelled via its `AbortSignal`.
+2. **Request Sequence Tracking (`requestIdRef`)**: A monotonic counter increments with each fetch. When a response returns, the component verifies that the response belongs to the latest request ID before applying it to state.
+
+In `src/lib/axios.ts`, cancelled requests (`axios.isCancel`) are rejected cleanly without logging noise to the console.
+
+---
+
+## DummyJSON Limitations
+
+1. **Non-Persistent CRUD**:
+   DummyJSON does not persist updates. A `POST /products/add` returns an artificial product object with ID 195+. If a user subsequently attempts a `PUT /products/195` or `DELETE /products/195`, DummyJSON returns a 404 because the ID never existed on their server. The service layer handles this gracefully by updating the local UI state.
+2. **Single-Operation Queries**:
+   The API does not support combining `/products/search` with `/category` in a single endpoint. The UI resolves this by prioritizing search and refining matching categories client-side.
+
+---
+
+## Design / Architecture Decisions
+
+- **Separation of Concerns**: UI components never import Axios directly. All API operations go through typed functions in `src/services/product.service.ts` and `src/services/auth.service.ts`.
+- **Flicker-Free Auth Guard**: `<AuthGuard />` uses React's `useSyncExternalStore` to read `localStorage`. This eliminates hydration mismatches between server-rendered HTML and client storage.
+- **Isolated Details Mounting**: The product details view isolates its data fetching into `<ProductDetailsContent />` nested inside `<AuthGuard />`. This prevents unauthenticated requests from firing before the auth redirect executes.
+- **Enterprise Aesthetics**: Avoided gratuitous gradients and saturated backgrounds. Focused on clear typography, tabular alignment, consistent status badges, accessible form labels, and compact layout density.
+
+---
+
+## Testing / Verification
+
+- **Linting**: Verified with `npm run lint` (0 errors, 0 warnings).
+- **Production Build**: Verified with `npm run build` (compiled clean routes for `/`, `/login`, `/dashboard`, and `/products/[id]`).
+- **Authentication Flow**: Tested invalid credentials error handling, valid login (`emilys` / `emilyspass`), token persistence, and logout.
+- **Edge Cases**: Verified invalid route IDs (e.g. `/products/999999` and `/products/abc`) render a clean "Product Not Found" screen without breaking.
+- **Responsive Layout**: Verified table layout on desktop (>=1024px) and card view on mobile (<768px).
+
+---
+
+## AI Assistance
+
+An AI assistant was used during development as a pair programmer to:
+- Trace Next.js 16 type generator issues and React 19 hydration warnings.
+- Assist with boilerplate interface declarations for the DummyJSON product schema.
+- Brainstorm the dual race-condition architecture combining `AbortController` with sequential request IDs.
+
+All code, styling, edge case handling, and architecture decisions were reviewed, debugged, and validated to ensure simple, human-written quality.

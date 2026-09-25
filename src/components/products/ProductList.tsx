@@ -165,6 +165,23 @@ export default function ProductList() {
     };
   }, []);
 
+  // Synchronize state when browser back/forward buttons change searchParams
+  useEffect(() => {
+    const urlPage = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+    const rawSize = parseInt(searchParams.get("pageSize") || "10", 10);
+    const urlPageSize = VALID_PAGE_SIZES.includes(rawSize) ? rawSize : 10;
+    const urlSearch = searchParams.get("search") || "";
+    const urlCategory = searchParams.get("category") || "";
+    const rawSortVal = (searchParams.get("sort") || "") as SortValue;
+    const urlSort = VALID_SORTS.includes(rawSortVal) ? rawSortVal : "";
+
+    setPage((prev) => (prev !== urlPage ? urlPage : prev));
+    setPageSize((prev) => (prev !== urlPageSize ? urlPageSize : prev));
+    setSearchInput((prev) => (prev !== urlSearch ? urlSearch : prev));
+    setCategory((prev) => (prev !== urlCategory ? urlCategory : prev));
+    setSort((prev) => (prev !== urlSort ? urlSort : prev));
+  }, [searchParams]);
+
   // When debounced search changes, reset page to 1 and update URL
   const prevDebouncedSearchRef = useRef(debouncedSearch);
   useEffect(() => {
@@ -248,6 +265,12 @@ export default function ProductList() {
 
       // Check if this response matches the latest issued request
       if (currentRequestId === requestIdRef.current) {
+        const maxPage = Math.max(1, Math.ceil(data.total / pageSize));
+        if (page > maxPage && data.total > 0) {
+          setPage(maxPage);
+          updateUrlParams({ page: maxPage });
+          return;
+        }
         setProducts(data.products);
         setTotal(data.total);
         setIsLoading(false);
@@ -266,12 +289,11 @@ export default function ProductList() {
       }
 
       if (currentRequestId === requestIdRef.current) {
-        console.error("Load products error:", err);
-        setError("Failed to load products. Please check your connection and retry.");
+        setError("Unable to load products. Please check your connection and retry.");
         setIsLoading(false);
       }
     }
-  }, [page, pageSize, debouncedSearch, category, sort]);
+  }, [page, pageSize, debouncedSearch, category, sort, updateUrlParams]);
 
   // Fetch products whenever dependencies change
   useEffect(() => {
@@ -507,9 +529,11 @@ export default function ProductList() {
 
       {/* Empty State */}
       {!isLoading && !error && products.length === 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-xs">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400 text-lg">
-            🔍
+        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
           <h3 className="mt-3 text-base font-semibold text-gray-900">
             No products found
@@ -531,7 +555,7 @@ export default function ProductList() {
 
       {/* Products Table (Desktop) & Cards (Mobile) */}
       {!isLoading && !error && products.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           {/* Desktop Table View */}
           <ProductTable
             products={products}
